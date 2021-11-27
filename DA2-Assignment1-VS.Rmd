@@ -1,0 +1,150 @@
+---
+output: 
+ html_document:
+   theme: journal
+   highlight: espresso
+ pdf_document: default
+ df_print: paged
+ fontsize: 10
+---
+
+#### Sára Vargha - Assignment 1
+#### Introduction
+The aim of the analysis is two fold: (1) uncover the unconditional gender gap between female and male financial specialists ("Financial Specialist", codes 0800-0950) and (2) further analyse how it differs when the level of education is taken into consideration.The basis of the analysis is the Current Population Survey (CPS) conducted monthly in the USA by the Bureau of Labor Statistics.
+
+#### Data cleaning
+The morg-2014-emp.csv cross-sectional dataset includes detailed emplyoment information of 149,316 individuals from 2014. First, the following variables were calculated: a binary variable for female and male individuals (female: female=1, male=0), the hourly wage(w) as the weekly wage divided by the number of hours worked per week, and four binary variables for levels of education from Bachelor degree (43) onwards. Furthermore, the log of wage ("lnw") was added to enable for log-level regressions. As the last step, variable gender was created to store gender info in character format.For the sake of analysis, multiple filters were applied to narrow down the data to the Financial Specialist category with individuals with at least a BA degree. To reflect the typical working age of people with these kinds of education, data was further narrowed than to individuals of age 24 to 64 and kept only those who reported at least 20 working hours per week. As a result, 2,361 observations were kept.
+
+#### Analysis
+To analyse the distribution of hourly wages for the Financial Specialist category, two density plots were created for wage and log wage, with colors representing the difference between males and females. According to the density plots, the distribution of wage (level-level) is close to normal, whereas the log transformation of wage lead to a skewed distribution with long left tail. Thus, I decided to keep the wage and focus on level-level regressions.
+To dig deeper in the relationship between gender and hourly wages, first two regressions were run to uncover the unconditional gender gap. According to the log-level regression, we can be 99% confident that female Financial specialists earned 17.99-22.61% less, on average, than men in the USA in 2014. Based on the level-level model, we can be 99% confident that female Financial specialists earned 5.94-7.22 dollars less per hour, on average, than men in the USA in 2014. (See Table 1)
+As the next step, the different levels of education were added to the model with BA degree being the reference degree. Comparing employees of the same gender, those with an MA degree earned 3.60, those with a Professional degree 6.83, and those with a PhD 11.58 dollars per hour more, on average, than employees with a BA degree (at 1% significance level), on average, in the USA in 2014. It is also worth noticing that the coefficient on female is smaller when education is included in the model. This might infer that the gender difference is partly due to the fact that females are more likely to be in the lower-paid BA group than in the higher-paid Master's, professional certificate or PhD groups.
+When applying level of education interacted with gender, the hourly wage difference between  females with an MA degree and their male counterparts is not significant at 5%. However, the hourly wage difference between females with a Professional degree and females with PhD is significant at 5%. Thus, we can conclude that females with MA degree earned 10.27 dollars less, whereas females with PhD degree earned 18.33 dollars more, on average, than their male counterparts in the USA in 2014. (See Table 2)
+Estimating the regressions for women and men separately, it seems that higher level of education has a bigger positive impact on Master's and Professional certificate holders  among males than among their female counterparts. Nevertheless, the pattern changes for  the group of PhD degree holders: women with PhD earn 23.89 dollars more per hour, on average, at 1% significance level, whereas the positive impact in case of men is not significant at 5%. (See Table 3)
+
+#### Conclusion
+Based on my analysis I can conclude that there was a gender gap beetween male and female employees in the Financial Specialist category in the USA in 2014 based on the dataset. The negative difference between hourly wages was the biggest among professional degree holders, while it existed but was not significant in case of MA degree holders. However, these patterns might be different in different geographic regions and different years, or in case the various occupations have different weights in the Financial Specialist category.
+
+\newpage
+#### Appendix
+
+```{r include=FALSE, warning=FALSE}
+# clean environment
+
+rm(list=ls())
+
+# install packages
+library(tidyverse)
+library(lspline)
+library(cowplot)
+library(boot)
+library(estimatr)
+library(huxtable)
+library(stargazer)
+library(modelsummary)
+library(gridExtra)
+```
+
+```{r include=FALSE, warning=FALSE}
+# load data
+
+df <- read_csv("https://osf.io/4ay9x/download")
+```
+
+```{r include=FALSE, warning=FALSE}
+# Generate variable for females, hourly wages, log hourly wages and levels of education
+df <- df %>% mutate(female=as.numeric(sex==2)) %>%
+  mutate(w=earnwke/uhours) %>%
+  mutate(lnw=log(w)) %>% 
+  mutate(ed_BA=as.numeric(grade92==43),
+         ed_MA=as.numeric(grade92==44),
+         ed_Prof = as.numeric(grade92==45),
+         ed_PhD = as.numeric(grade92==46))
+
+# Create gender variable with values "Male" and "Female"
+df$gender <- as.numeric(df$sex)
+df$gender[df$gender==1] <- "Male"
+df$gender[df$gender==2] <- "Female"
+df$gender <- as.character(df$gender)
+
+
+#Filter for Financial Specialists, weekly working hours >20, age between 24-64 and level of education starting from BA degrees
+data_fa <- df %>% filter (occ2012>=0800 & occ2012<=0950 & uhours>=20 & earnwke>0 & age>=24 & age<=64 & grade92>42)
+```
+
+#### Graph 1:
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+
+# Examine the distribution of wage and log wage
+dist_w<- ggplot(data = data_fa, aes(x=w, color=gender))+
+  geom_density() +
+  labs(title="Wage distribution", x="Hourly wage", y="Ratio")
+
+dist_w
+```
+
+#### Table 1: Unconditional regression
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+# unconditional gendergap
+reg0 <- lm(lnw~female,data_fa) 
+
+reg1 <- lm_robust(lnw ~ female, data = data_fa, se_type = "HC1")
+                          
+reg2 <- lm_robust(w ~ female, data = data_fa, se_type = "HC1")
+
+msummary(list("Log wage"= reg1, "Wage" = reg2),
+         fmt="%.4f",
+         gof_omit = 'DF|Deviance|Log.Lik.|F|R2 Adj.|AIC|BIC',
+         stars=c('*' = .05, '**' = .01),
+         title="Unconditional regression")
+
+```
+
+#### Table 2: Conditional regression
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+# Taking education level into consideration
+reg3 <- lm_robust(w ~ female + ed_MA + ed_Prof + ed_PhD, data=data_fa, se_type = "HC1")
+reg4 <- lm_robust(w ~ ed_MA*female + ed_Prof*female + ed_PhD*female, data=data_fa, se_type = "HC1")
+
+msummary(list(" Wage - Female "= reg2, "Wage - level of education" = reg3, "Wage - level of education x female" = reg4),
+         fmt="%.4f",
+         gof_omit = 'DF|Deviance|Log.Lik.|F|R2 Adj.|AIC|BIC',
+         stars=c('*' = .05, '**' = .01),
+         title= "Conditional regression")
+```
+
+#### Table 3: Interactions with education level
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+
+## Estimating regressions separately for men and women
+f_data_fa <- data_fa %>% filter(female==1)
+m_data_fa <- data_fa %>% filter(female==0)
+
+reg5 <- lm_robust(w ~   ed_MA + ed_Prof + ed_PhD, data=f_data_fa, se_type = "HC1")
+
+reg6 <- lm_robust(w ~  ed_MA+ ed_Prof + ed_PhD, data = m_data_fa, se_type = "HC1")
+
+reg7 <- lm_robust(w ~ female + ed_MA*female + ed_Prof*female + ed_PhD*female, data = data_fa, se_type = "HC1")
+
+msummary(list("Women"= reg5, "Men" = reg6, "All" = reg7),
+         fmt="%.4f",
+         gof_omit = 'DF|Deviance|Log.Lik.|F|R2 Adj.|AIC|BIC',
+         stars=c('*' = .05, '**' = .01),
+         title= "Interactions with education level")
+```
+
+
+#### Graph 2:
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+## Visualization of the relationship between the level of education and the earnings per hour (for females and males)
+
+p2 <- ggplot(data = data_fa, aes(x = grade92, y = w, col=gender)) +
+  geom_point() + 
+  geom_smooth(method="lm") +
+  facet_grid(~gender) +
+  labs(title="Relationship between the level of education and wages per hour",x = "Level of education",y = "Hourly wage")
+
+p2
+```
+

@@ -68,10 +68,8 @@ dist_lnw
 
 # unconditional gendergap
 reg0 <- lm(lnw~female,data_fa) 
-summary(reg1)
 
 reg1 <- lm_robust(lnw ~ female, data = data_fa, se_type = "HC1")
-summary(reg2)                            
 
 reg2 <- lm_robust(w ~ female, data = data_fa, se_type = "HC1")
 
@@ -81,8 +79,8 @@ msummary(list("Log wage"= reg1, "Wage" = reg2),
          stars=c('*' = .05, '**' = .01),
          title="Unconditional regression")
 
-## From the log-level regression, we can be 95% confident that female Financial specialists earned 17.99-22.61% less, on average, than men in the USA in 2014.
-## From the level-level model, we can be 95% fonfident that female Financial specialists earned 5.94-7.22 dollars less per hour, on average, than men in the USA in 2014.
+## From the log-level regression, we can be 99% confident that female Financial specialists earned 17.99-22.61% less, on average, than men in the USA in 2014.
+## From the level-level model, we can be 99% confident that female Financial specialists earned 5.94-7.22 dollars less per hour, on average, than men in the USA in 2014.
 
 
 # Taking education level into consideration

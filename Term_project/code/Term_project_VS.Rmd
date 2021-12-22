@@ -1,0 +1,601 @@
+---
+title: "Term project"
+author: "Sára Vargha"
+date: '22/12/2021 '
+output: 
+  pdf_document:
+    extra_dependencies: ["float"]
+---
+
+
+## Introduction
+
+Financial inclusion is gaining increasing attention as it is among the key enablers of the UN Sustainable Development Goals (SDGs), which will be a key driver of reducing poverty and enhancing shared global economic prosperity. According to World Bank studies, globally around 1.7 billion people, or 31% of the adult population, lack access to financial services - and a significant portion of these unbanked groups are women. Thus, besides its importance in driving economic development, improved financial inclusion can also lead to greater gender equality.
+The aim of this analysis is (1) to uncover the pattern of association between financial inclusion and gender, and  (2) examine the same when other factors, such as age, level of education, employment status and household income quantile are taken into consideration. 
+
+## Data description
+
+The basis of the analysis is the 2017 Global Findex database  drawn from survey data covering almost 150,000 people in 144 economies—representing more than 97 percent of the world’s population. The survey was carried out over the 2017 calendar year by Gallup, Inc., as part of its Gallup World Poll, which since 2005 has annually conducted surveys of approximately 1,000 people in each of more than 160 economies and in over 150 languages, using randomly selected, nationally representative samples. The target population is the entire civilian population from the age of 15 and above. The original dataset can be downloaded from the World Bank's Microdata Library. (https://microdata.worldbank.org/index.php/catalog/3324)
+
+## Data cleaning 
+
+The dataset contained originally 154,923 observations and 105 variables. As the majority of these variables were not necessarily relevant for my analysis, I decided to keep only a set of variables that I intend to incorporate in my models. As a result, I kept 11 variables from the original dataset.
+
+As part of the exploratory data analysis, I continued with examining the most important variables. I originally wanted to include four explanatory variables in my analysis, out of which age was the only numeric variable, while the other three were categorical variables that needed to be converted into binaries for the sake of modeling: (1) gender (0 - male, 1 - female), (2) level of education (three binaries for primary, secondary and tertiary levels), and (3) income quantile category ( five binaries for the five quantiles).
+
+Once I had all the variables in the right form, I explored their distributions in my data and did some extra cleaning based on the outcomes. First, "age" had 451 missing values that I replaced with the average value of age in the data. Since the variable had a skewed distribution with a long right tail, I decided to apply log transformation to check which form would lead to a better fit later on. In case of the other four key variables, I detected missing values in case of employment status ("employed") and the level of education ("education"). Since the number of missing values were negligible (<1% of the entire dataset), I dropped them. 
+
+After the above steps taken, the remaining number of observations is 153,012. As we can see from Table 1, 63% of the respondents had an account and 54% of them were female. The age of survey participants ranged from 15 to 99 with a median of 39 years. The median respondent had a secondary education and belongs to the thirds income quantile.
+
+## Models
+
+As our dependent variable is a binary variable, the pattern of association between gender and having an account will be examined with the use of various linear probability models.
+
+The first model tested (lpm1) aimed to uncover the unconditional gender gap, and thus, contained no control variables. Based on the outcome of the linear probability model, we can conclude that 67.8% of male respondents had an account and female participants were 8.4% less likely to have an account, which means that 59.1% of them had an account at 1% level of significance.
+
+In my second model, I ran two versions with (a) ln_age (lpm2a) and (b) age as control variable to see (lpm2b). While using age variable has a better interpretation, ln_age might be a better due its close-to-normal distribution. Looking at the results of version (a), we can conclude that respondents from the same gender who were "10% older" were 1.816 % points more likely to have an account with a 3.7% R-squared, while version (b) tells us that respondents from the same gender who were 1 year older were 0.4% points more likely to have an account with a 3% R-squared. Although the fit of version (a) was somewhat better, I decided to keep age in my model because of the easier interpretation. Also, both models implied at 1% level of significance that comparing respondents with the same age, females were 8.6% points less likely to have an account than their male counterparts.
+
+In the third model (lpm3), I added employment status on top of gender and age. Based on the coefficients, we can conclude that when comparing respondents both employed and with the same age, females were 5.2% points less likely to have an account than their male counterparts at 1% level of significance. Also, employed females with the same age were 17.5% points more likely to have an account than unemployed females with the same age, indicating that being employed has a positive association with having an account.
+
+In the fourth model (lpm4), the levels of education were added  with primary or below (edu_primary) being the reference level. Based on the outcome, we can conclude that higher levels of education lead to an increased probability of having a bank account:   when comparing respondents with the same gender, age and employment status, those who had secondary level of education were 30.4% points more likely to have a bank account compared to their counterparts with a primary or below level of education, while those with a tertiary or above level education level were 47.1% points more likely to have an account at 1% level of significance. When comparing female and male respondents with the same age, employment status and level of education, females were 3.4 % points less likely to have an account than their male counterparts at 1% level of significance. This model reached an R-squared of 18.6%.
+
+In the last and fifth model (lpm5), the income quantiles were added to the model with the first quantile being the reference level (inc_poorest). However, although results were significant at <1% level of significance, I decided not to go further as adding these variables only sightly increased our R-squared (19.1% from 18.6%) while bringing significant complexity to the model. 
+
+In the final part of the analysis I used the same set of explanatory variables as in case of lpm4 to run logit and probit probability models. The summary of the outcomes of these models (including the marginal differences of our logit and probit models) were stored in Table 3. 
+
+From the results, we can indeed see that LPM, logit and probit lead to very similar results, with gender, age, employment status and the different education levels all being significant explanatory variables at 1% and logit and probit having the smallest standard errors. Although the outcome of logit and probit models has no straightforward interpretation, their marginal differences have practically the interpretation as LPM:
+
+- When comparing respondents with the same gender, age and employment status, those who had secondary level of education were 26.6% points (logit)/26.8% points (probit) more likely to have a bank account compared to their counterparts with a primary or below level of education, while those with a tertiary or above level education level were 37.4% points (logit)/37.8% percentage points (probit) more likely to have an account at 1% level of significance
+- When comparing female and male respondents with the same age, employment status and level of education, females were 3.4 % points less likely to have an account than their male counterparts at 1% level of significance. 
+
+It was interesting to see, that when it came to "employed" and "edu_secondary", the coefficients of the probit and logit models were slightly below the LPM models, while in case of "edu_tertiary" the difference was almost 10% points.  When we consider the plot that compares the fit of the three models, we can see that the probit and logit curves are moving away from with higher values of predicted probabilities of LPM.
+
+Looking at our histogram where we plotted one histogram for observations with actual y=1 (has an account) and one for observations with actual y=0 (doesn't have an account) based on our LPM model (lpm4), we can see that the fit of the prediction is far from perfect: the two distributions overlap to a large extent and a larger part of the distribution covers higher predicted values among individuals who have an account than it should.
+
+When we consider biasedness of our models, all of our three models (LPM, logit, probit) are slightly biased with LPM having the lowest level of bias. As for calibration, based on the calibration figures all of our models seem well-calibrated, as they stay close to the 45 degree line.
+
+## Robustness check
+
+Although the above discussed models are showing convincing results at 1% level of significance, the results might be different when we use a different regression approach and the external validity of the analysis also can be low, as we cannot be 100% certain that the three dimensions (time, space, other groups of respondents) of the general pattern that are data represents is the same in the actual population - in our case adult population of the Earth - that we are interested in. To address external validity, the analysis could be repeated at a different time - using the survey results from a previous year or taking the geographic data of respondents into account (which was not part of the current analysis). 
+
+As for using various regression approaches, the introduction of new control variables in the above discussed linear probability models is one fairly simple way to proceed. However, the analysis could be further enriched by using piecewise linear splines, quadratic forms and interaction terms to check robustness.
+
+Nevertheless, as the analysis was based on a survey conducted using randomly selected, nationally representative samples and included approximately 1,000 people in each of more than 160 countries in 2017, the covered sample can be a good approximation of the actual adult population of the world when we assume that its composition hasn't changed drastically in the past 4 years. Also, enriching the linear probability models with new control variables constantly increased the explaining power of the model and supported the expected pattern of association, therefore the result of this analysis can be regarded at a basic level.
+
+## Conclusion
+
+Based on the analysis, we can conclude that there is indeed a gender gap in financial inclusion: females tend to have a lower probability of having an account than their male counterparts. Although the difference seems to increase with higher age and higher levels of education, as well as with being employed, it never fully disappears. 
+
+The scope of this analysis did not cover some important aspect, such as geographic differences, but provides initial evidence for the worldwide gender gap in financial inclusion. For policymakers and decision makers of the financial sector this results might serve as motivation for more detailed research to understand why the gap exists and what its consequences might be in our society. In the longer run, financial education programs and/or financial products tailored for women could be potential ways to address and close the gap.
+
+## Appendix
+
+### Distribution of key variables
+
+```{r include = FALSE, warning  =FALSE, message = FALSE}
+
+#### 0.Step: Clean the environment and load the required packages
+
+# Clean environment
+
+rm(list = ls())
+
+# Install packages
+
+library(tidyverse)
+library(lspline)
+library(cowplot)
+library(boot)
+library(estimatr)
+library(huxtable)
+library(stargazer)
+library(modelsummary)
+library(gridExtra)
+library(scales)
+library(reshape2)
+library(ggpubr)
+library(fixest)
+library(mfx)
+library(kableExtra)
+library(knitr)
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.pos = "!H", out.extra = "")
+
+#Set graph size
+knitr::opts_chunk$set(echo = FALSE, out.width = "50%" ) 
+
+```
+
+```{r echo=FALSE, warning = FALSE, message = FALSE}
+
+#### 1. Step: Load and clean data
+
+# Load original dataset from local computer - since the size was too big to upload to GitHub, I first loaded it from my local computer
+# and wrote out a version where I kept only a set of variables relevant for my analysis. Then I uploaded this simplified version to GitHub and loaded it from there. 
+# The original dataset can be downloaded from the World Bank's Microdata Library: https://microdata.worldbank.org/index.php/catalog/3324 
+
+# df <- read.csv('/Users/vargh/OneDrive/Dokumentumok/CEU Business Analytics/Courses/Fall/Data Analysis 2/Term project/micro_world.csv')
+# glimpse(df)
+
+# Keep the relevant variables only
+
+# df <- df %>% 
+# select(-contains(paste0("fin",1:47))) %>% 
+# select(-contains("receive")) %>% 
+# select(-contains("pay")) %>% 
+# select(-c("saved", "borrowed", "remittances", "wgt", "mobileowner", "account_fin", "account_mob", "pop_adult")) 
+
+# Write out simplified dataset
+
+# write.csv(df, '/Users/vargh/OneDrive/Dokumentumok/CEU Business Analytics/Courses/Fall/Data Analysis 2/Term project/micro_world_2.csv')
+# rm(df)
+
+# Read simplified dataset from GitHub
+
+df <- read.csv('https://raw.githubusercontent.com/saravargha/ceu-data-analysis-2/main/Term_project/data/micro_world_2.csv')
+
+# Change variable names
+
+df <- df %>% 
+  rename(country = economy,
+         country_code = economycode,
+         region = regionwb,
+         education = educ,
+         income_quantile = inc_q,
+         employed = emp_in) %>% 
+  
+  # Create binary variable "gender" from the "female" variable
+  
+  mutate(gender = as.integer(ifelse(female == 1, 0, 1))) %>% 
+  
+  # Create binary variable for Primary, Secondary and Tertiary education levels
+  
+  mutate(edu_primary = as.numeric(education == 1),
+         edu_secondary = as.numeric(education == 2),
+         edu_tertiary = as.numeric (education == 3)) %>% 
+  
+  # Create binary variable for the five income quantiles
+  
+  mutate(inc_poorest = as.numeric(income_quantile == 1),
+         inc_second = as.numeric(income_quantile == 2),
+         inc_middle = as.numeric(income_quantile == 3),
+         inc_fourth = as.numeric(income_quantile == 4),
+         inc_richest = as.numeric(income_quantile == 5)
+         )
+
+```
+
+```{r warning  = FALSE, message = FALSE, echo = FALSE, fig.height = 3, fig.width = 10, fig.align="center", results = "hide", fig.keep='all'}
+
+#### Step 2: Get familiar with variables and do extra cleaning where needed
+
+### Check the summaries of our variables
+
+## A) Numeric continuous variable - age
+
+summary(df$age) # we have 451 missing values --> substitute missing values with averages
+df$age <- replace (df$age, is.na(df$age), mean(df$age, na.rm = T))
+
+p1 <- ggplot(df, aes(x = age)) +
+  geom_histogram(aes(y = ..density..), fill = "darkseagreen3", color = "white", binwidth = 5) +
+  geom_density(aes( y = ..density.. ), color = "grey90", bw = 5, size = 2) +
+  labs(title = "Density plot for age", x = "age", y = "") +
+  theme_classic()
+p1
+
+# distribution is skewed with a long right tail
+# log transformation
+
+df <- df %>% 
+  mutate(ln_age = log (age))
+
+# check distirbution of ln_age
+
+p2 <- ggplot(df, aes(x = ln_age)) +
+  geom_histogram(aes(y = ..density..), fill = "darkseagreen3", color = "white",  bw = 5) +
+  geom_density(aes( y = ..density.. ), color = "grey90", size = 2) +
+  labs(title = "Density plot for ln age", x = "Ln age", y = "") +
+  theme_classic()
+p2
+
+```
+
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 3, fig.width = 10, fig.align="center", results = "hide", fig.keep='all', }
+
+## B) Categorical variables
+
+# Gender
+
+summary(df$gender)
+table(df$gender)
+
+ p3 <- ggplot(df, aes(x = gender)) +
+      geom_bar(color="white",
+         fill = "darkseagreen3",
+         width= 0.5) +
+      ggtitle("Distribution of gender") +
+      scale_y_continuous(labels = label_number(suffix = " k", scale = 1e-3)) +
+      scale_x_continuous(breaks = c(0,1), labels = c( "Male", "Female")) +
+      xlab("Gender") + 
+      ylab("Total") +
+      theme_classic()
+ p3
+
+# Level of education
+
+table(df$education) # we have 479 "4 = don't know" and 431 "5 - refused" responses, that I considered as missing values
+
+df <- df %>% 
+  filter(education %in% c(1:3))
+
+p4 <- ggplot(df, aes(x = education)) +
+      geom_bar(color="white",
+           fill = "darkseagreen3",
+           width= 0.5) +
+      scale_y_continuous(labels = label_number(suffix = " k", scale = 1e-3)) +
+      scale_x_continuous(breaks=c(1,2,3), labels = c("Primary", "Secondary", "Tertiary")) +
+      ggtitle("Distribution of levels of education") +
+      xlab("Level of education") + 
+      ylab("Total") +
+      theme_classic()
+p4
+
+# Income quantiles
+
+table(df$income_quantile)
+summary(df$income_quantile)
+
+p5 <- ggplot(df, aes(x = income_quantile)) +
+  geom_bar(color="white",
+           fill = "darkseagreen3",
+           width= 0.5) +
+  ggtitle("Distribution of income quantiles") +
+  scale_y_continuous(labels = label_number(suffix = " k", scale = 1e-3)) +
+  xlab("Income quantile") + 
+  ylab("Total") + 
+  theme_classic()
+
+# Employment status
+
+summary(df$employed) #We have 991 missing values
+df <- df %>% 
+  drop_na(employed)
+
+
+p6 <- ggplot(df, aes(x = employed)) +
+  geom_bar(color="white",
+           fill = "darkseagreen3",
+           width= 0.5) +
+  ggtitle("Distribution of employment status") +
+  scale_y_continuous(labels = label_number(suffix = " k", scale = 1e-3)) +
+  scale_x_continuous(breaks = c(0,1), labels = c( "Not employed", "Employed")) +
+  xlab("Employment status") + 
+  ylab("Total") + 
+  theme_classic()
+
+# Having an account
+
+summary(df$account)
+
+p7 <- ggplot(df, aes(x = account)) +
+  geom_bar(color="white",
+           fill = "darkseagreen3",
+           width= 0.5) +
+  ggtitle("Distribution of having an account") +
+  scale_y_continuous(labels = label_number(suffix = " k", scale = 1e-3)) +
+  scale_x_continuous(breaks = c(0,1), labels = c( "No", "Yes")) +
+  xlab("Having an account") + 
+  ylab("Total") + 
+  theme_classic()
+
+p7
+
+# check remaining missing values
+
+sum(is.na(df))
+
+# create association figures for gender and account - the two variables whose pattern of association is the key question of the analysis
+
+association_figs <- ggarrange(p3, p7,
+                       hjust = -0.6,
+                       ncol = 2, nrow = 1)
+association_figs
+
+
+```
+
+### Table 1: Descriptive statistics of variables
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width = 10, fig.align="center"}
+
+# Create table for descriptive statistics
+P95 <- function(x){quantile(x,0.95,na.rm=T)}
+P05 <- function(x){quantile(x,0.05,na.rm=T)}
+
+t1 <- datasummary( ("Having an account" = account ) + 
+             ("Gender" = gender ) + 
+             ("Age" = age ) +
+             ("Level of education" = education) +
+             ("Employment status" = employed) +
+             ("Income quantile" = income_quantile) ~
+             Mean + Median + SD + Min + Max + P05 + P95 , 
+             data = df ,
+             title = 'Descriptive statistics') %>% 
+      kable_styling(latex_options = c("HOLD_position","scale_down"))
+t1
+
+```
+
+### Pattern of associaton between having an account and gender
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width = 10, fig.align="center", results = "hide", fig.keep='all'}
+
+#### Step 3: Analysis and probability models
+
+## Description of the figure
+
+# Our main interest is the relationship between gender and having an account
+
+lpm1 <- lm(account ~ gender, data = df)
+summary(lpm1, vcov = hetero)
+
+df$pred1 <- predict(lpm1)
+
+#create weights
+df <- df %>%
+  group_by(gender, account) %>%
+  mutate(weight = n())  %>%
+  mutate(weight_2=(weight/1000))
+
+g1<-ggplot(data = df, label=gender) +
+  geom_line(aes(x = gender, y = pred1),  size=0.7) +
+  geom_point(aes(x = gender, y = account, size=weight_2), fill = " Blue",  shape = 16, alpha=0.8, show.legend=F, na.rm=TRUE)+
+  labs(x = "Gender",y = "Having an account", title = 'Relationship between gender and having an account')+
+  scale_y_continuous(limits = c(0, 1.05), breaks = c(0,1), labels = c("No", "Yes")) +
+  scale_x_continuous(limits = c(0, 1), breaks = c(0,1), labels = c("Male", "Female")) +
+  theme_classic()
+g1
+
+```
+
+### Table 2: Comparison of LPM models
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width =10, fig.align="center", fig.keep='all'}
+
+#### Probability models
+
+### Model 1: simple LPM with no controls
+
+lpm1 <- feols(account ~ gender, data = df, vcov = 'hetero')
+
+## predict probability
+df$pred1 <- predict(lpm1)
+
+### Model 2: control for ln age
+lpm2a <- feols(account ~ gender + ln_age, data=df, vcov = 'hetero')
+
+lpm2b <- feols(account ~ gender + age, data=df, vcov = 'hetero')
+ 
+## predict probability - use age for better interpretation
+df$pred2 <- predict(lpm2b)
+
+### Model 3: control for ln age, employment status
+lpm3 <- feols(account ~ gender + age + employed, data = df, vcov = 'hetero')
+
+## predict probability
+df$pred3 <- predict(lpm3)
+
+### Model 4: control for ln age, employment status and education levels
+lpm4 <- feols(account ~ gender + age + employed + edu_secondary + edu_tertiary, data = df, vcov = 'hetero')
+
+## predict probability
+df$pred4 <- predict(lpm4)
+
+### Model 5: control for ln age, employment status, education levels and income quantiles
+lpm5 <- feols(account ~ gender + age + employed + edu_secondary + edu_tertiary + inc_second + inc_middle + inc_fourth + inc_richest, 
+           data = df, vcov = 'hetero')
+
+## predict probability
+df$pred5 <- predict(lpm5)
+ 
+# Compare LPM models
+cm <- c('(Intercept)' = 'Constant')
+t2 <- msummary(list('LPM1'=lpm1 , 'LPM2a'=lpm2a, 'LPM2b'=lpm2b, 'LPM3'=lpm3, 'LPM4'= lpm4, 'LPM5' =lpm5),
+         fmt="%.3f",
+         gof_omit = "DF|Deviance|R2 Pseudo|R2 Within|AIC|BIC|Log*",
+         stars=c('*' = .05, '**' = .01),
+         coef_rename = cm) %>% 
+      kable_styling(latex_options = c("HOLD_position","scale_down"))
+t2
+
+```
+
+### Table 3: Comparison of LPM, Logit and Probit models
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width = 10, fig.align="center", fig.keep='all'}
+
+# Create formula variable
+
+model_formula <- formula( account ~ gender + age + employed + edu_secondary + edu_tertiary )
+
+### Model 6: logit
+logit <- glm(model_formula, data = df, family='binomial')
+
+## predict probability
+df$pred6 <- predict.glm(logit, type="response")
+
+## logit marginal differences
+logit_marg <- logitmfx(model_formula, data=df, atmean=FALSE)
+
+### Model 7: probit
+probit <- glm(model_formula, data = df, family=binomial(link="probit"))
+
+## predict probability
+df$pred7 <- predict.glm(probit, type="response")
+
+## probit marginal differences
+probit_marg <- probitmfx(model_formula, data = df, atmean=FALSE)
+
+cm <- c('(Intercept)' = 'Constant')
+t3 <- msummary(list('LPM4'=lpm4 , 'Logit'=logit, 'Logit marg.'=logit_marg, 'Probit'=probit, 'Probit marg.'=probit_marg),
+         fmt="%.3f",
+         gof_omit = 'DF|Deviance|Log.Lik.|F|R2 Adj.|AIC|BIC|R2|PseudoR2',
+         stars=c('*' = .05, '**' = .01),
+         coef_rename = cm) %>% 
+      kable_styling(latex_options = c("HOLD_position","scale_down"))
+t3
+
+```
+
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width = 10,  fig.align="center", results = "hide", fig.keep='all'}
+
+p8 <- ggplot(data = df) +
+      geom_point(aes(x=pred4, y=pred7, color="Probit"), size=0.8,  shape=16) +
+      geom_point(aes(x=pred4, y=pred6,  color="Logit"), size=0.8,  shape=16) +
+      geom_line(aes(x=pred4, y=pred4), size=1) +
+      labs(x = "Predicted probability of having an account (LPM)", y="Predicted probability", colour='Model', title = "Comparison of LPM, logit and probit models") +
+      scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
+      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
+      scale_color_manual(values = c("darkseagreen3", "hotpink4"), name = "") +
+      theme_classic()
+p8
+
+```
+
+### Goodness of fit
+```{r echo = F, warning = FALSE, message = FALSE, fig.height = 7, fig.width = 13, fig.align = "center", results = "hide", fig.keep='all'}
+
+#### GOODNESS OF FIT
+
+# use logit and pred4 to plot the distribution of having an account and the distribution of the pred. prob. of having an account
+
+p9 <- ggplot(data = df ,aes(x=pred4)) + 
+      geom_histogram (data=subset(df[df$account == 1, ]), 
+                 aes(fill=as.factor(account), color=as.factor(account), y = (..count..)/sum(..count..)*100),
+                 binwidth = 0.05, boundary=0, alpha=0.8) +
+      geom_histogram (data=subset(df[df$account == 0, ]), 
+                 aes(fill=as.factor(account), color=as.factor(account), y = (..count..)/sum(..count..)*100), 
+                 binwidth = 0.05, boundary=0, alpha=0) +
+      ylab("Percent") +
+      xlab("Fitted values") +
+      labs(title= "Having an account vs. the predicted probability of having an account") +
+      scale_fill_manual(values = c("grey90", "darkseagreen3"), name= "", labels = c("Doesn't have an account", "Has an account")) + 
+      scale_color_manual(values = c("grey90", "darkseagreen3")) +
+      theme_classic() 
+  
+p9
+
+```
+
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width = 10,  fig.align="center", results = "hide", fig.keep='all'}
+
+#### Bias
+
+## Calculate bias
+bias_lpm4 <- mean(df$pred4) - mean(df$account)
+bias_logit <- mean(df$pred6) - mean(df$account)
+bias_probit <- mean(df$pred7) - mean(df$account)
+
+bias <- c(bias_lpm4, bias_logit, bias_probit)
+print(bias)
+
+```
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width = 10,  fig.align="center", results = "hide", fig.keep='all'}
+
+#### create calibration curve for lpm model
+# create new data frame
+actual_vs_predicted <- df %>%
+  ungroup() %>% 
+  dplyr::select( actual = account, 
+          predicted = pred4) 
+num_groups <- 10
+
+# group observations
+calibration_d <- actual_vs_predicted %>%
+  mutate(predicted_score_group = ntile(predicted, num_groups))%>%
+  group_by(predicted_score_group) %>%
+  summarise(mean_actual = mean(actual), 
+                   mean_predicted = mean(predicted), 
+                   num_obs = n())
+# plot the curve
+p10 <- ggplot( calibration_d,aes(x = mean_actual, y = mean_predicted)) +
+        geom_point( color="darkseagreen3", size=1.5, alpha=0.8) +
+        geom_line(  color="darkseagreen3", size=1  , alpha=0.8) +
+        geom_abline( intercept = 0, slope = 1, color= "hotpink4") +
+        labs( x = "\n Actual event probability", y = "Predicted event probability \n", title = "Calibration curve for LPM model") +
+        scale_x_continuous(expand = c(0.01,0.01), limits = c(0,1), breaks = seq(0,1,0.1)) +
+        scale_y_continuous(expand = c(0.01,0.01), limits = c(0,1), breaks = seq(0,1,0.1)) +
+        theme_classic()
+
+
+```
+
+
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width = 10,  fig.align="center", results = "hide", fig.keep='all'}
+
+#### create calibration curve for logit model
+# create new data frame
+actual_vs_predicted <- df %>%
+  ungroup() %>% 
+  dplyr::select( actual = account, 
+          predicted = pred6) 
+num_groups <- 10
+
+# group observations
+calibration_d <- actual_vs_predicted %>%
+  mutate(predicted_score_group = ntile(predicted, num_groups))%>%
+  group_by(predicted_score_group) %>%
+  summarise(mean_actual = mean(actual), 
+                   mean_predicted = mean(predicted), 
+                   num_obs = n())
+# plot the curve
+p11 <- ggplot( calibration_d,aes(x = mean_actual, y = mean_predicted)) +
+      geom_point( color="darkseagreen3", size=1.5, alpha=0.8) +
+      geom_line(  color="darkseagreen3", size=1  , alpha=0.8) +
+      geom_abline( intercept = 0, slope = 1, color= "hotpink4") +
+      labs( x = "\n Actual event probability", y = "Predicted event probability \n", title = "Calibration curve for logit model") +
+      scale_x_continuous(expand = c(0.01,0.01), limits = c(0,1), breaks = seq(0,1,0.1)) +
+      scale_y_continuous(expand = c(0.01,0.01), limits = c(0,1), breaks = seq(0,1,0.1)) +
+      theme_classic()
+
+```
+
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 5, fig.width = 10,  fig.align="center", results = "hide", fig.keep='all'}
+#### create calibration curve for probit model
+# create new data frame
+actual_vs_predicted <- df %>%
+  ungroup() %>% 
+  dplyr::select( actual = account, 
+          predicted = pred7) 
+num_groups <- 10
+
+# group observations
+calibration_d <- actual_vs_predicted %>%
+  mutate(predicted_score_group = ntile(predicted, num_groups))%>%
+  group_by(predicted_score_group) %>%
+  summarise(mean_actual = mean(actual), 
+                   mean_predicted = mean(predicted), 
+                   num_obs = n())
+# plot the curve
+p12 <- ggplot( calibration_d,aes(x = mean_actual, y = mean_predicted)) +
+      geom_point( color="darkseagreen3", size=1.5, alpha=0.8) +
+      geom_line(  color="darkseagreen3", size=1  , alpha=0.8) +
+      geom_abline( intercept = 0, slope = 1, color= "hotpink4") +
+      labs( x = "\n Actual event probability", y = "Predicted event probability \n", title = "Calibration curve for probit model") +
+      scale_x_continuous(expand = c(0.01,0.01), limits = c(0,1), breaks = seq(0,1,0.1)) +
+      scale_y_continuous(expand = c(0.01,0.01), limits = c(0,1), breaks = seq(0,1,0.1)) +
+      theme_classic()
+
+```
+
+### Calibration curves (LPM, logit, probit)
+```{r echo = F, warning=FALSE, message = FALSE, fig.height = 7, fig.width = 13,  fig.align="center"}
+
+### Calibration figs
+calibration_figs <- ggarrange(p10, p11, p12,
+                       hjust = -0.6,
+                       ncol = 2, nrow = 2)
+
+calibration_figs
+
+```
+
